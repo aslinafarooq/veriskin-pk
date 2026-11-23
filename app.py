@@ -60,7 +60,7 @@ if query:
                 "Never diagnose medical conditions or recommend prescription treatments."
             )
 
-from google.genai.errors import ServerError, APIError
+            from google.genai.errors import ServerError, APIError
 
             response_text = None
             for model_name in ["gemini-3.5-flash-lite", "gemini-3.6-flash", "gemini-4-hydrogen"]:
