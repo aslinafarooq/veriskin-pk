@@ -60,19 +60,34 @@ if query:
                 "Never diagnose medical conditions or recommend prescription treatments."
             )
 
-            response = gemini.models.generate_content(
-                model="gemini-3.8-flash",
-                contents=f"User Question: {query}\n\nDatabase Records:\n{context_block}",
-                config=types.GenerateContentConfig(
-                    system_instruction=system_prompt,
-                    temperature=0.2,
-                ),
-            )
+from google.genai.errors import ServerError, APIError
+
+            response_text = None
+            for model_name in ["gemini-3.5-flash-lite", "gemini-3.6-flash", "gemini-4-hydrogen"]:
+                try:
+                    response = gemini.models.generate_content(
+                        model=model_name,
+                        contents=f"User Question: {query}\n\nDatabase Records:\n{context_block}",
+                        config=types.GenerateContentConfig(
+                            system_instruction=system_prompt,
+                            temperature=0.2,
+                        ),
+                    )
+                    response_text = response.text
+                    break
+                except (ServerError, APIError):
+                    continue
 
             st.subheader("VeriSkin Summary")
-            st.markdown(response.text)
+            if response_text:
+                st.markdown(response_text)
+            else:
+                st.warning(
+                    "Gemini's servers are temporarily busy right now. "
+                    "You can still inspect the verified database records below!"
+                )
 
-            with st.expander("View Raw Verified Database Records"):
+            with st.expander("View Raw Verified Database Records", expanded=True):
                 st.write("**Products:**", products)
                 st.write("**Product Sources:**", sources)
                 st.write("**Retailers:**", retailers)
